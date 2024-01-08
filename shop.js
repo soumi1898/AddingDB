@@ -90,10 +90,15 @@ exports.postCart = (req, res, next) => {
 
 exports.postCartDeleteProduct = (req, res, next) => {
   const prodId = req.body.productId;
-  Product.findById(prodId, product => {
-    Cart.deleteProduct(prodId, product.price);
-    res.redirect('/cart');
-  });
+  // Product.findById(prodId, product => {
+  //   Cart.deleteProduct(prodId, product.price);
+  //   res.redirect('/cart');
+  // });
+  Product.deleteById(prodId)
+    .then((result)=>{
+      console.log(result);
+    })
+    .catch(err=>console.log(err));
 };
 
 exports.getOrders = (req, res, next) => {
