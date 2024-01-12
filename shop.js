@@ -1,128 +1,25 @@
-const Product = require('../models/product');
-const Cart = require('../models/cart');
+const path = require('path');
 
-exports.getProducts = (req, res, next) => {
-  // Product.fetchAll(products => {
-  //   res.render('shop/product-list', {
-  //     prods: products,
-  //     pageTitle: 'All Products',
-  //     path: '/products'
-  //   });
-  // });
-  Product.findAll()
-    .then((products)=>{
-      res.render('shop/product-list', {
-            prods: products,
-            pageTitle: 'All Products',
-            path: '/products'
-          });
-    })
-    .catch(err=>console.log(err));
-};
+const express = require('express');
 
-exports.getProduct = (req, res, next) => {
-  const prodId = req.params.productId;
-  // Product.findById(prodId, product => {
-  //   res.render('shop/product-detail', {
-  //     product: product,
-  //     pageTitle: product.title,
-  //     path: '/products'
-  //   });
-  // });
+const shopController = require('../controllers/shop');
 
-  //APPROACH 1:
-  Product.findAll({where:{id:prodId}})
-    .then(products=>{
-      res.render('shop/product-detail',{
-        product: products[0],
-        pageTitle: products[0].title,
-        path: '/products'
-      });
-    }).catch(err=>console.log(err));
-  
-  //APPROACH 2: (findById is not working in my code)
-  // Product.findById(prodId)
-  //   .then((product)=>{
-  //     res.render('shop/product-detail', {
-  //           product: product,
-  //           pageTitle: product.title,
-  //           path: '/products'
-  //         });
-  //   })
-  //   .catch(err=>console.log(err));
-};
+const router = express.Router();
 
-exports.getIndex = (req, res, next) => {
-  // Product.fetchAll(products => {
-  //   res.render('shop/index', {
-  //     prods: products,
-  //     pageTitle: 'Shop',
-  //     path: '/'
-  //   });
-  // });
-  Product.findAll()
-    .then(products =>{
-      res.render('shop/index', {
-            prods: products,
-            pageTitle: 'Shop',
-            path: '/'
-        });   
-     })
-    .catch(err=>console.log(err));
-};
+router.get('/', shopController.getIndex);
 
-exports.getCart = (req, res, next) => {
-  Cart.getCart(cart => {
-    Product.fetchAll(products => {
-      const cartProducts = [];
-      for (product of products) {
-        const cartProductData = cart.products.find(
-          prod => prod.id === product.id
-        );
-        if (cartProductData) {
-          cartProducts.push({ productData: product, qty: cartProductData.qty });
-        }
-      }
-      res.render('shop/cart', {
-        path: '/cart',
-        pageTitle: 'Your Cart',
-        products: cartProducts
-      });
-    });
-  });
-};
+router.get('/products', shopController.getProducts);
 
-exports.postCart = (req, res, next) => {
-  const prodId = req.body.productId;
-  Product.findById(prodId, product => {
-    Cart.addProduct(prodId, product.price);
-  });
-  res.redirect('/cart');
-};
+router.get('/products/:productId', shopController.getProduct);
 
-exports.postCartDeleteProduct = (req, res, next) => {
-  const prodId = req.body.productId;
-  // Product.findById(prodId, product => {
-  //   Cart.deleteProduct(prodId, product.price);
-  //   res.redirect('/cart');
-  // });
-  Product.deleteById(prodId)
-    .then((result)=>{
-      console.log(result);
-    })
-    .catch(err=>console.log(err));
-};
+router.get('/cart', shopController.getCart);
 
-exports.getOrders = (req, res, next) => {
-  res.render('shop/orders', {
-    path: '/orders',
-    pageTitle: 'Your Orders'
-  });
-};
+router.post('/cart', shopController.postCart);
 
-exports.getCheckout = (req, res, next) => {
-  res.render('shop/checkout', {
-    path: '/checkout',
-    pageTitle: 'Checkout'
-  });
-};
+router.post('/cart-delete-item', shopController.postCartDeleteProduct);
+
+router.get('/orders', shopController.getOrders);
+
+router.get('/checkout', shopController.getCheckout);
+
+module.exports = router;

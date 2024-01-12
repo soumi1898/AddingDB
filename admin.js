@@ -1,94 +1,24 @@
-const Product = require('../models/product');
+const path = require('path');
 
-exports.getAddProduct = (req, res, next) => {
-  res.render('admin/edit-product', {
-    pageTitle: 'Add Product',
-    path: '/admin/add-product',
-    editing: false
-  });
-};
+const express = require('express');
 
-exports.postAddProduct = (req, res, next) => {
-  const title = req.body.title;
-  const imageUrl = req.body.imageUrl;
-  const price = req.body.price;
-  const description = req.body.description;
-  Product.create({
-    title: title,
-    price: price,
-    imageUrl: imageUrl,
-    description: description
-  })
-    .then(result=>{
-      console.log(res);
-      res.redirect('/admin/products');
-    })
-    .catch(err=>console.log(err));
-};
+const adminController = require('../controllers/admin');
 
-exports.getEditProduct = (req, res, next) => {
-  const editMode = req.query.edit;
-  if (!editMode) {
-    return res.redirect('/');
-  }
-  const prodId = req.params.productId;
-  Product.findByPk(prodId)  //in sequelize 5, findById was replace by findByPk
-    .then(product =>{
-    if (!product) {
-      return res.redirect('/');
-    }
-    res.render('admin/edit-product', {
-      pageTitle: 'Edit Product',
-      path: '/admin/edit-product',
-      editing: editMode,
-      product: product
-    });
-  });
-};
+const router = express.Router();
 
-exports.postEditProduct = (req, res, next) => {
-  const prodId = req.body.productId;
-  const updatedTitle = req.body.title;
-  const updatedPrice = req.body.price;
-  const updatedImageUrl = req.body.imageUrl;
-  const updatedDesc = req.body.description;
-  Product.findByPk(prodId)
-    .then(product=>{
-      product.title=updatedTitle;
-      product.price=updatedPrice;
-      product.description=updatedDesc;
-      product.imageUrl=updatedImageUrl;
-      product.save();
-    })
-    .then((res)=>{
-      console.log("UPDATED PRODUCt!");
-      res.redirect('/admin/products');
-    })
-    .catch(err=> console.log(err));
-};
+// /admin/add-product => GET
+router.get('/add-product', adminController.getAddProduct);
 
-exports.getProducts = (req, res, next) => {
-  Product.findAll()
-    .then(products=>{
-      res.render('admin/products', {
-        prods: products,
-        pageTitle: 'Admin Products',
-        path: 'admin/products'
-      });
-    })
-    .catch(err =>console.log(err));
+// /admin/products => GET
+router.get('/products', adminController.getProducts);
 
-};
+// /admin/add-product => POST
+router.post('/add-product', adminController.postAddProduct);
 
-exports.postDeleteProduct = (req, res, next) => {
-  const prodId = req.body.productId;
-  Product.findByPk(prodId)
-    .then(product=>{
-      return product.destroy();
-    })
-    .then(result=>{
-      console.log('DELETED');
-      res.redirect('/admin/products');
-    })
-    .catch(err =>console.log(err));
-};
+router.get('/edit-product/:productId', adminController.getEditProduct);
+
+router.post('/edit-product', adminController.postEditProduct);
+
+router.post('/delete-product', adminController.postDeleteProduct);
+
+module.exports = router;
